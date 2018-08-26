@@ -1,0 +1,9 @@
+$ pip install tensorflow_hub
+
+$ python3 retrain.py -h
+
+$ python3 retrain.py --image_dir rotten_bananas/ --tfhub_module https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/feature_vector/2
+
+$ tensorboard --logdir post_training/retrain_logs/
+
+$ python label_image.py --graph=post_training/output_graph.pb --labels=post_training/output_labels.txt --input_layer=Placeholder --output_layer=final_result --image=9.jpg
