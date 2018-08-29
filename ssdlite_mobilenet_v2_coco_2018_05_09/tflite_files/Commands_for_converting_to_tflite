@@ -1,0 +1,31 @@
+ubuntu:~/Desktop/MachineLearning/models/research$ curl -OL https://github.com/google/protobuf/releases/download/v3.2.0/protoc-3.2.0-linux-x86_64.zip
+
+ubuntu:~/Desktop/MachineLearning/models/research$ unzip protoc-3.2.0-linux-x86_64.zip -d protoc3
+
+ubuntu:~/Desktop/MachineLearning/models/research$ python setup.py build
+
+ubuntu:~/Desktop/MachineLearning/models/research$ python setup.py install
+
+ubuntu:~/Desktop/MachineLearning/models/research$ source ~/.bashrc
+
+ubuntu:~/Desktop/MachineLearning/models/research$ protoc object_detection/protos/*.proto --python_out=.
+
+ubuntu:~/Desktop/MachineLearning/models/research$ python object_detection/builders/model_builder_test.py
+..................
+----------------------------------------------------------------------
+Ran 18 tests in 0.079s
+
+OK
+
+ubuntu:~/Desktop/MachineLearning/models/research$ python object_detection/export_tflite_ssd_graph.py --pipeline_config_path=object_detection/ssdlite_mobilenet_v2_coco_2018_05_09/pipeline.config --trained_checkpoint_prefix=object_detection/ssdlite_mobilenet_v2_coco_2018_05_09/model.ckpt --output_directory=object_detection/ssdlite_mobilenet_v2_coco_2018_05_09 --add_postprocessing_op=true
+
+The below command doesn't reduce the size of .tflite file because '--inference_type=FLOAT'
+
+ubuntu:~/Desktop/MachineLearning/tensorflow$ bazel run -c opt tensorflow/contrib/lite/toco:toco -- --input_file=$OUTPUT_DIR/tflite_graph.pb --output_file=$OUTPUT_DIR/detect.tflite --input_shapes=1,300,300,3 --input_arrays=normalized_input_image_tensor --output_arrays='TFLite_Detection_PostProcess','TFLite_Detection_PostProcess:1','TFLite_Detection_PostProcess:2','TFLite_Detection_PostProcess:3'  --inference_type=FLOAT --allow_custom_ops
+
+ubuntu:~/Desktop/MachineLearning/tensorflow$ export OUTPUT_DIR=/home/tcs/Desktop/MachineLearning/models/research/object_detection/ssdlite_mobilenet_v2_coco_2018_05_09/tflite_files
+
+The below command reduces the file size from 18.5MB to 4.6MB because '--inference_type=QUANTIZED_UINT8'
+
+ubuntu:~/Desktop/MachineLearning/tensorflow$ bazel run -c opt tensorflow/contrib/lite/toco:toco -- --input_file=$OUTPUT_DIR/tflite_graph.pb --output_file=$OUTPUT_DIR/detect.tflite --input_shapes=1,300,300,3 --input_arrays=normalized_input_image_tensor --output_arrays='TFLite_Detection_PostProcess','TFLite_Detection_PostProcess:1','TFLite_Detection_PostProcess:2','TFLite_Detection_PostProcess:3' --inference_type=QUANTIZED_UINT8 --mean_values=128 --std_values=128 --change_concat_input_ranges=false --default_ranges_min=0 --default_ranges_max=6 --allow_custom_ops
+
